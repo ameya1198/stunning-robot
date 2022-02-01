@@ -1,0 +1,149 @@
+---
+title: "Stephen Curry Influence"
+output:
+  html_document:
+    df_print: paged
+  df_print: paged
+---
+
+
+This notebook shows how Stephen Curry Impacts the offense of his team, the Golden State Warriors.
+
+
+
+**Problem Statement:**  *Does Stephen Curry's stats affect the Golden State Warriors' Offensive points scored?*
+
+
+
+
+**Introduction**
+
+Stephen Curry, 33, is a Professional American Basketball player in the NBA for the Golden State Warriors Organization. He is regarded as the most prolific shooter in NBA and history and one of the best scorers in the game. It has been said that Stephen Curry is the heart of the team and the offense runs through him. In his absence in games or poor performance, the team struggles to score points and the team either wins barely or loses the game. 
+
+
+
+
+
+**Some Important Basketball terminologies used in the following notebook:**
+
+1. PPG (Points per game) : Number of points scored per game.
+2. FG% (Field Goal Percentage): It is the calculation of the number of shots made divided by number of shots attempted.
+3. 3P% (3 point Field Goal Percentage): It is the same as FG% but for the time when you score from the 3 point line on the court.
+4. T.Score: The score by the team. 
+
+
+
+
+
+ 
+First, the required libraries are loaded and installed which are required for the analysis.
+```{r}
+library(tidyverse)
+library(corrplot)
+```
+
+
+
+
+After loading the libraries, the dataset is read using the `read.csv()` function and then placed into a dataframe for convenience.
+The dataset was obtained from Kaggle which contains all Stephen Curry's stats from 2009 to 2021.
+```{r}
+read.csv('C:/Users/Ameya/Downloads/Stephr.csv')
+steph <- read.csv('C:/Users/Ameya/Downloads/Stephr.csv')
+head(steph)
+```
+
+
+
+
+Summary of the data can be seen using the `summary()` function.
+```{r}
+summary(steph)
+```
+
+
+
+
+
+For a Simple Linear Regression, only some columns are needed from the Dataframe for analysis. After selecting the columns from the dataframe, these columns placed in another dataframe.
+```{r}
+steph[, c("T.Score", "FG.", "X3P.", "PTS")]
+newsteph <- steph[, c("T.Score", "FG.", "X3P.", "PTS")]
+```
+
+
+
+
+
+The columns selected from the dataframe will be used for further regression of the problem statement. From the problem statement, it can be said that the Team Score i.e "T.Score" is the dependant variable and the remaining features like Points scored by Curry (PTS), his field goal percentage(FG.) and his Three point percentage (X3P.) are the independent variables. To see the how much effect they have on the dependant variable, correlation is calculated for better answers.
+```{r}
+cor(newsteph$T.Score, newsteph$FG.)
+cor(newsteph$T.Score, newsteph$X3P.)
+cor(newsteph$T.Score, newsteph$PTS)
+```
+
+From the output it can be seen that, all the variables has a positive correlation with the independent variable. Out of the three, PTS has the higher correlation value among all of them, followed by FG. and lastly three point percentage (X3P.). This suggests that Regression can be calculated with any chosen variable. But as PTS has a higher value, it will more significant to use it as an independent variable.
+
+
+
+
+
+A histogram is created of all the plots using the `pairs()` function to visualize the correlation.
+```{r}
+pairs(newsteph %>% select(where(is.numeric)), cex = .7)
+```
+
+The visualization shows an upward trend between T.Score and PTS. Other two variables show an upward trend as well but one can observe that PTS has a slight higher approach angle for the upward trend.
+
+
+
+
+
+Now that the correlation has been calculated and the independent variables are chosen, the model can thus be created using the 'lm' function. 
+Stephen Curry being a prolific three point shooter, his three point percentage is also being considered as an independent variable so as to see if that affects the team scoring as well.
+After the model is created, the summary can be seen using the `summary()` function.
+```{r}
+Model1 <- lm(T.Score ~ PTS + X3P. , data = newsteph)
+summary(Model1)
+```
+
+
+From the results, the equation formed is $$T.Score = 96.41931 + (0.480PTS) + (0.602*X3P.)$$. 
+The Adjusted R Squared value is 0.1647 which is very minimal. It means that Stephen Curry's stats account for about 16% in the change of the team score. Even though the R squared is minimal, 16% share in an offense is a lot to account for for one person as the team consists of around 11-13 players. 
+
+
+
+
+
+To check if the values of the offense really go through changes, we shall predict the points scored by the team using random points scored by Curry and his three point percentage.
+First, a dataframe will be created containing random inputs of points scored by Curry along with some random Three point percentages by him.
+```{r}
+nd <- data.frame(PTS = c(26, 40, 16, 32, 51, 9) , X3P. = c(32.6, 51, 42.3, 34.1, 43, 12.5))
+print(nd)
+```
+
+
+
+
+After the new dataframe is created, it will be used for the output prediction based on the linear model that was created earlier.
+```{r}
+predict(Model1, newdata = nd)
+```
+
+
+**The predictions suggest that the points scored and the 3 point percentage of Curry does affect the team score in a subtle way.**
+
+
+
+
+To clearly see the predictions, they are combined with the dataframe of input variables using `cbind()`.
+
+```{r}
+prediction <- as.data.frame(predict(Model1, newdata = nd))
+colnames(prediction) <- ('PPG Prediction')
+
+StephCurryInfluence <- cbind(nd, prediction)
+
+print(StephCurryInfluence)
+```
+
